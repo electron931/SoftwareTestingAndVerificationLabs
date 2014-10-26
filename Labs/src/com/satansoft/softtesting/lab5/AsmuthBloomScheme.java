@@ -25,10 +25,15 @@ public class AsmuthBloomScheme {
         this.m = m;
         this.n = n;
         shareSecret();
+
+        System.out.println("Each user has:");
+        for (int i = 0; i < n; i++) {
+            System.out.println("{ " + p + ", " + d[i] + ", " + k[i] + " }");
+        }
     }
 
 
-    //method restores secret using Chinese Remainder Theorem
+    //method restores secret using Chinese Remainder Theorem (take first m users)
     public BigInteger restoreSecret() {
         BigInteger M0 = d[0];
         for (int i = 1; i < this.m; i++) {
@@ -42,28 +47,16 @@ public class AsmuthBloomScheme {
 
         BigInteger[] y = new BigInteger[this.m];
         for (int i = 0; i < this.m; i++) {
-            BigInteger gcd = Mi[i].gcd(k[i]);
-            BigInteger tempMi = Mi[i].divide(gcd);
-            BigInteger tempK = k[i].divide(gcd);
-
-            y[i] = BigInteger.ONE;
-            BigInteger temp = tempMi.multiply(y[i]).mod(d[i]);
-            while( temp.compareTo(tempK) != 0 ) {
-                y[i] = y[i].add(BigInteger.ONE);
-                temp = tempMi.multiply(y[i]).mod(d[i]);
-            }
+            BigInteger[] vals = extendedEuclidGcd(Mi[i], d[i]);
+            y[i] = vals[1];
         }
 
         System.out.println("Y:");
         outputArray(y);
 
-        for (int i = 0; i < this.m; i++) {
-            Mi[i] = M0.divide(d[i]);
-        }
-
-        BigInteger x = Mi[0].multiply(y[0]);
+        BigInteger x = k[0].multiply(Mi[0].multiply(y[0]));
         for (int i = 1; i < this.m; i++) {
-            x = x.add(Mi[i].multiply(y[i]));
+            x = x.add(k[i].multiply(Mi[i].multiply(y[i])));
         }
         x = x.mod(M0);
 
@@ -138,6 +131,19 @@ public class AsmuthBloomScheme {
         }
 
         return divisors;
+    }
+
+
+    //  return array [d, a, b] such that d = gcd(p, q), ap + bq = d
+    private BigInteger[] extendedEuclidGcd(BigInteger p, BigInteger q) {
+        if (q.compareTo(BigInteger.ZERO) == 0)      //q == 0
+            return new BigInteger[] { p, BigInteger.ONE, BigInteger.ZERO };
+
+        BigInteger[] vals = extendedEuclidGcd(q, p.mod(q));
+        BigInteger d = vals[0];
+        BigInteger a = vals[2];
+        BigInteger b = vals[1].subtract(p.divide(q).multiply(vals[2]));
+        return new BigInteger[] { d, a, b };
     }
 
 
