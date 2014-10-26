@@ -38,14 +38,14 @@ public class Main {
             return;
         }
 
-        if ( (3 < n && n < 20) && (2 < m && m < 19) ) {
+        if ( (3 < n && n < 20) && (2 < m && m < 19) && (m <= n) ) {
             AsmuthBloomScheme asmuthBloomScheme =
                     new AsmuthBloomScheme(secret, m, n);
             BigInteger restoredSecret = asmuthBloomScheme.restoreSecret();
             System.out.println("Secret: " + restoredSecret);
         }
         else {
-            System.out.println("3 < n < 20; 2 < m < 19");
+            System.out.println("3 < n < 20; 2 < m < 19; m <= n");
         }
 
     }
